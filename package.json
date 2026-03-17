@@ -1,11 +1,13 @@
 {
-  "name": "telegram-bot",
+  "name": "telegram-downloader-bot",
   "version": "1.0.0",
+  "description": "Telegram bot for downloading videos",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.61.0"
+    "node-telegram-bot-api": "^0.61.0",
+    "yt-dlp-exec": "^1.0.0"
   }
 }
