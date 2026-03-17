@@ -6,11 +6,15 @@ const token = process.env.TOKEN;
 const ADMIN_ID = process.env.ADMIN_ID;
 
 const bot = new TelegramBot(token, { polling: true });
+bot.deleteWebHook();
 
 console.log("🔥 BOT STARTED");
 
 // تخزين المستخدمين
 let users = new Set();
+
+// تخزين اللينكات مؤقت
+const links = {};
 
 // /start
 bot.onText(/\/start/, (msg) => {
@@ -47,15 +51,19 @@ bot.on('message', (msg) => {
     if (!text || text.startsWith("/")) return;
 
     if (text.startsWith("http")) {
+
+        // حفظ اللينك
+        links[chatId] = text;
+
         bot.sendMessage(chatId, "اختار 👇", {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🎥 جودة عالية", callback_data: `high|${text}` },
-                        { text: "📱 جودة متوسطة", callback_data: `low|${text}` }
+                        { text: "🎥 جودة عالية", callback_data: "high" },
+                        { text: "📱 جودة متوسطة", callback_data: "low" }
                     ],
                     [
-                        { text: "🎧 MP3", callback_data: `mp3|${text}` }
+                        { text: "🎧 MP3", callback_data: "mp3" }
                     ]
                 ]
             }
@@ -64,14 +72,19 @@ bot.on('message', (msg) => {
 });
 
 // التعامل مع الأزرار
-bot.on('callback_query', async (query) => {
+bot.on('callback_query', (query) => {
     const chatId = query.message.chat.id;
-    const [type, url] = query.data.split("|");
+    const type = query.data;
+
+    const url = links[chatId];
+
+    if (!url) {
+        return bot.sendMessage(chatId, "❌ ابعت اللينك الأول");
+    }
 
     bot.sendMessage(chatId, "⏳ جاري التحميل...");
 
     let fileName = `file_${chatId}`;
-
     let command;
 
     if (type === "high") {
@@ -103,7 +116,7 @@ bot.on('callback_query', async (query) => {
             }
 
             bot.sendMessage(chatId,
-`✅ تم التحميل بنجاح
+`✅ تم التحميل
 
 📩 للتواصل:
 @Abdalluhgomaa`);
