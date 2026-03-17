@@ -1,5 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 const fs = require('fs');
 
 const token = process.env.TOKEN;
@@ -10,10 +10,18 @@ bot.deleteWebHook();
 
 console.log("🔥 BOT STARTED");
 
+// تثبيت yt-dlp تلقائي
+try {
+    execSync("python3 -m pip install yt-dlp");
+    console.log("✅ yt-dlp installed");
+} catch (e) {
+    console.log("❌ failed to install yt-dlp");
+}
+
 // تخزين المستخدمين
 let users = new Set();
 
-// تخزين اللينكات مؤقت
+// تخزين اللينكات
 const links = {};
 
 // /start
@@ -52,7 +60,6 @@ bot.on('message', (msg) => {
 
     if (text.startsWith("http")) {
 
-        // حفظ اللينك
         links[chatId] = text;
 
         bot.sendMessage(chatId, "اختار 👇", {
@@ -71,7 +78,7 @@ bot.on('message', (msg) => {
     }
 });
 
-// التعامل مع الأزرار
+// الأزرار
 bot.on('callback_query', (query) => {
     const chatId = query.message.chat.id;
     const type = query.data;
@@ -89,17 +96,17 @@ bot.on('callback_query', (query) => {
 
     if (type === "high") {
         fileName += ".mp4";
-        command = `yt-dlp -f best -o ${fileName} "${url}"`;
+        command = `python3 -m yt_dlp -f best -o ${fileName} "${url}"`;
     }
 
     if (type === "low") {
         fileName += ".mp4";
-        command = `yt-dlp -f worst -o ${fileName} "${url}"`;
+        command = `python3 -m yt_dlp -f worst -o ${fileName} "${url}"`;
     }
 
     if (type === "mp3") {
         fileName += ".mp3";
-        command = `yt-dlp -x --audio-format mp3 -o ${fileName} "${url}"`;
+        command = `python3 -m yt_dlp -x --audio-format mp3 -o ${fileName} "${url}"`;
     }
 
     exec(command, async (error) => {
